@@ -1,7 +1,6 @@
 import math
 import time
 
-
 '''
 The utility proportional fairness algorithm is described in the below paper
 
@@ -44,7 +43,6 @@ def U(s,x):
 
 def Uinv(s,x):
 	if s==0: 
-		# print "arg of log : ", (1.0/x) - 1
 		# return 0.5*(10 - math.log((1.0/x)-1))
 		return (1.0/c0)*x
 	elif s==1:
@@ -88,25 +86,16 @@ for s in xrange(0,FLOWS_COUNT):
 	print "[{}, {}],  ".format(l,r),
 print
 
-# print "Utilities Range: ",
-# for s in xrange(0,3):
-# 	l = Uinv(s,m[s])
-# 	r = Uinv(s,M[s])
-# 	print "[{}, {}],  ".format(l,r),
-# print
-
-
 itr = 0
 while True:
-	# if itr==6:
-	# 	break
 
 	# xf(l) is the aggregate source rate at link l
 	print "p : ",
+
 	for l in xrange(0,1):
 		p[l] = max(p[l] + gama*(xf(l) - c[l]), 0.00001)
 		print "{0} ,\t".format(p[l]),
-		#print "p[{0}] = {1}".format(l,p[l])
+
 	print
 
 
@@ -127,6 +116,5 @@ while True:
 
 	print "Sum of Utilitites : {0}".format(U(0,x[0]) + U(1,x[1]))
 
-	# time.sleep(1)
 
 	itr = itr + 1

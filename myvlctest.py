@@ -23,36 +23,32 @@ and so on till max n
 Code needs to be written to handle a more general network
 
 The below global variables need to be set according to the experiment
-
 '''
-
-
-
 
 import sys
 import time
-from threading import Thread
-
-from mininet.topo import Topo
-from mininet.net import Mininet
-from mininet.node import CPULimitedHost
-from mininet.link import TCLink
-from mininet.util import dumpNodeConnections
-from mininet.log import setLogLevel
-from mininet.cli import CLI
-
-from functools import partial
-from mininet.node import RemoteController
-import subprocess
-from os.path import isfile, join
 import os
+import subprocess
+
+from threading 		import Thread
+from mininet.topo 	import Topo
+from mininet.net 	import Mininet
+from mininet.node 	import CPULimitedHost
+from mininet.link 	import TCLink
+from mininet.util 	import dumpNodeConnections
+from mininet.log 	import setLogLevel
+from mininet.cli 	import CLI
+from functools 		import partial
+from mininet.node 	import RemoteController
+from os.path 		import isfile, join
+
 
 '''
 Maximum of 32 hosts , working for this topology (some RAM limitations , i guess) - 
 tested on a 4 GB Ubuntu 14.04 
 '''
-n = -1 # number of hosts
-bw = 10.0  # link bandwidth in mbps (all links have the same bandwidth)
+n = -1 		# number of hosts
+bw = 10.0  	# link bandwidth in mbps (all links have the same bandwidth)
 qos = 1     # 1 -> if QoS needs to be applied | 0 -> no QoS
 
 '''
@@ -64,15 +60,15 @@ qos_k = 2
 
 workingDir = os.getcwd()
 
-capture_script = join(workingDir, 'capture.sh')  # '/home/sumanth/mininetDir/capture.sh'
+capture_script = join(workingDir, 'capture.sh')  					# '/home/sumanth/mininetDir/capture.sh'
 
-sd_flow_filepath = join(workingDir, 'testVideos/360x240_2mb.mp4') #'/home/sumanth/sample/360x240_2mb.mp4'
-hd_flow_filepath = join(workingDir, 'testVideos/720x480_5mb.mp4') #'/home/sumanth/sample/720x480_5mb.mp4'
-stream_time = 40 # wait for 40 seconds before shutting down (accomodate for the max time of a video safely)
+sd_flow_filepath = join(workingDir, 'testVideos/360x240_2mb.mp4') 	#'/home/sumanth/sample/360x240_2mb.mp4'
+hd_flow_filepath = join(workingDir, 'testVideos/720x480_5mb.mp4') 	#'/home/sumanth/sample/720x480_5mb.mp4'
+stream_time = 40 													# wait for 40 seconds before shutting down (accomodate for the max time of a video safely)
 
 
-savedStreamsDir = join(workingDir, 'savedStreams') # '/home/sumanth/teststorage/'
-capturedTracesDir = join(workingDir, 'capturedTraces') # '/home/sumanth/mininetDir/capture_traces'
+savedStreamsDir = join(workingDir, 'savedStreams') 		# '/home/sumanth/teststorage/'
+capturedTracesDir = join(workingDir, 'capturedTraces') 	# '/home/sumanth/mininetDir/capture_traces'
 
 
 class SimpleTopo(Topo):
@@ -87,7 +83,6 @@ class SimpleTopo(Topo):
 
         # 'dummy' is added to not use the zero index
         h = ['dummy'] # list of hosts
-
 
         # Adding hosts
         for i in range(n+1)[1:]:
@@ -110,10 +105,6 @@ def stream(src, dst, input_filename, output_filename, dstIP):
         std{access=file,mux=mp4,dst=%s}" \
         --run-time %d vlc://quit &'%(output_filename, local_stream_time)
     result2 = dst.sendCmd(client_command)
-    # print client_command
-    # result2 = dst.cmd('sleep 5')
-
-    # time.sleep(5)
 
     print 'Executing command on server %s -> %s'%(src.name, dst.name)
     server_command = 'cvlc -vvv %s --sout \
@@ -121,18 +112,10 @@ def stream(src, dst, input_filename, output_filename, dstIP):
         duplicate{dst=rtp{dst=%s,port=5004,mux=ts}}"\
          --run-time %d vlc://quit'%(input_filename, dstIP, local_stream_time)
     result1 = src.sendCmd(server_command)
-    # print server_command
-
-    # print result1
-
+    
     return (src, dst)
 
-    # print 'streaming finished !!! - thread-{}'.format(threadIdx)
-
-
-
 def vlcStream_working(net):
-    # sample testing method to send a vlc video stream from host h1 to h2
 
     h1, h2 = net.get('h1', 'h2')
 
@@ -140,18 +123,11 @@ def vlcStream_working(net):
     result2 = h2.cmd('cvlc rtp://@:5004 --sout \
         "#transcode{vcodec=h264,acodec=mpga,ab=128,channels=2,samplerate=44100}:std{access=file,mux=mp4,dst=output.mp4}" \
         --run-time 40 vlc://quit &')
-    # result2 = h2.cmd('sleep 5')
-
-    # time.sleep(5)
 
     print 'Executing command on h1'
     result1 = h1.cmd('cvlc -vvv test.mp4 --sout \
         "#transcode{vcodec=h264,acodec=mpga,ab=128,channels=2,samplerate=44100}:duplicate{dst=rtp{dst=10.0.0.2,port=5004,mux=ts}}" \
         --run-time 40 vlc://quit ')
-    # result1 = h1.cmd('sleep 5')
-
-    # result1wo = h1.waitOutput()
-
 
     print result1
     print result2
@@ -163,20 +139,14 @@ def initiateCapture(h):
     wireshark capture is used to obtain stats for throughput delay
     '''
 
-    # # 'dummy' is added to not use the zero index
-    # h = ['dummy'] # list of hosts
-
-    # # Getting hosts
-    # for i in range(n+1)[1:]:
-    #     h.append(net.get('h%d'%i))
-
     for i in range((n/2)+1)[1:]:
         if i%2==1:
             inFilepath = sd_flow_filepath
         else:
             inFilepath = hd_flow_filepath
         
-        outFile = inFilepath.split('/')[-1]   # gets the actual file name, from the full path name
+        # gets the actual file name, from the full path name
+        outFile = inFilepath.split('/')[-1]
         outFile = outFile.split('.')[0] + '_%dmb_link_'%bw + 'h%d_to_h%d_'%(2*i-1, 2*i)    + ('qos_' if qos else 'congest_') + '%dhosts'%n + '.pcap'
         outFile = join(capturedTracesDir,outFile)
 
@@ -188,7 +158,8 @@ def initiateCapture(h):
         h[2*i].cmd(command) # doesnt wait for the command to finish, if it is a blocking command
 
 def getOutFilepath(inFilepath, i):
-    outFile = inFilepath.split('/')[-1]   # gets the actual file name, from the full path name
+	# gets the actual file name, from the full path name
+    outFile = inFilepath.split('/')[-1]
     outFile = outFile.split('.')[0] + '_%dmb_link_'%bw + 'h%d_to_h%d_'%(2*i-1, 2*i)    + ('qos_' if qos else 'congest_') + '%dhosts'%n + '.mp4'
     outFile = join(savedStreamsDir,outFile)
 
@@ -204,14 +175,9 @@ def vlcStream(net):
 
     initiateCapture(h)
 
-    # h1, h2, h3, h4 = net.get('h1', 'h2', 'h3', 'h4')
-    # print 'h1 name =', h[1].name
-
     serv_cli_pairs = [] # list of tuples
 
-    # threads = ['dummy']
     for i in range((n/2)+1)[1:]:
-        # inFile = 'test.mp4'
 
         if i%2==1:
             inFile = sd_flow_filepath
@@ -221,15 +187,8 @@ def vlcStream(net):
 
         outFile = getOutFilepath(inFile,i)
 
-        # outFile = inFile.split('/')[-1]   # gets the actual file name, from the full path name
-        # outFile = outFile.split('.')[0] + '_%dmb_link_'%bw + 'h%d_to_h%d_'%(2*i-1, 2*i)    + ('qos_' if qos else 'congest_') + '%dhosts'%n + '.mp4'
-        # outFile = savedStreamsDir + outFile
-
         print 'outFile =', outFile
 
-        # threadIdx = i
-
-        # threads.append(Thread(target=stream, args=(h[2*i-1],h[2*i], inFile, outFile, '10.0.0.%d'%(2*i), threadIdx,)))
         serv_cli_pairs.append(stream(h[2*i-1],h[2*i], inFile, outFile, '10.0.0.%d'%(2*i)))
 
     ''' waiting for video flows to complete '''
@@ -237,8 +196,6 @@ def vlcStream(net):
         src.waitOutput()
         dst.waitOutput()
         print 'Video streaming complete from %s -> %s !!!'%(src.name, dst.name)
-
-
 
 def applyQueues():
     '''
@@ -266,15 +223,9 @@ def applyQueues():
 
         subprocess.call(command, shell=True)
 
-
-
-
-
-
 def vlcTest():
-    
+    '''Create network and run simple performance test'''
 
-    "Create network and run simple performance test"
     topo = SimpleTopo()
     net = Mininet(topo=topo,host=CPULimitedHost, link=TCLink,
     controller=partial(RemoteController, ip='127.0.0.1', port=6633))
@@ -286,13 +237,12 @@ def vlcTest():
     net.pingAll()
 
     # CLI(net) # starts the mininet command line prompt
-
     vlcStream(net)
     net.stop()
 
 def isValid_n(n):
+	'''Checking if topology is valid or not'''
     return n%4 == 0
-    # return True
 
 if __name__=='__main__':
     try:
@@ -302,7 +252,6 @@ if __name__=='__main__':
             raise ValueError('n should be a multiple of 4 !!')
 
     except ValueError:
-        # print sys.exc_info()[0]
         raise
 
     except:
